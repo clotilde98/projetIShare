@@ -1,67 +1,35 @@
-export const createAddress = async (SQLClient, { street, number, city, postalCode }, clientID) => {
+import axios from 'axios';
+
+export const importPostalData = async (SQLClient) => {
+  const url = 'https://www.odwb.be/api/explore/v2.1/catalog/datasets/code-postaux-belge/records?limit=10000';
+  const response = await axios.get(url);
+  const records = response.data.results;
+
+  for (const record of records) {
+    const { code_postal, localite } = record.record.fields;
+
+    await SQLClient.query(
+      `INSERT INTO Address (city, postal_code)
+       VALUES ($1, $2)
+       ON CONFLICT (city, postal_code) DO NOTHING`,
+      [localite, code_postal]
+    );
+  }
+
+  return 'Importation des villes et codes postaux réussie';
+};
+
+export const getAllCities = async (SQLClient) => {
   const { rows } = await SQLClient.query(
-    `INSERT INTO address (street, numero, city, postal_code, client_id)
-     VALUES ($1, $2, $3, $4, $5)
-     RETURNING *`,
-    [street, number, city, postalCode, clientID]
+    `SELECT * FROM Address ORDER BY postal_code ASC`
   );
-  return rows[0];
+  return rows;
 };
 
-export const getAddressByUser = async (SQLClient, clientID) => {
+export const getAddressByPostalCode = async (SQLClient, { postalCode }) => {
   const { rows } = await SQLClient.query(
-    `SELECT street, number, city, postal_code FROM address
-     WHERE client_id = $1
-     ORDER BY id
-     LIMIT 1`,
-    [clientID]
+    `SELECT * FROM Address WHERE postal_code = $1`,
+    [postalCode]
   );
-  return rows[0];
-};
-
-export const updateAddress = async (SQLClient, id, { street, number, city, postalCode }) => {
-    let query = "UPDATE address SET ";
-    const querySet = []; 
-    const queryValues = []; 
-
-    if (street ) {
-        queryValues.push(street);
-        querySet.push(`street = $${queryValues.length}`);
-    }
-
-    if (number ) {
-        queryValues.push(number);
-        querySet.push(`number = $${queryValues.length}`);
-    }
-
-    if (city) {
-        queryValues.push(city);
-        querySet.push(`city = $${queryValues.length}`);
-    }
-
-    if (postalCode) {
-        queryValues.push(postalCode);
-        querySet.push(`postal_code = $${queryValues.length}`);
-    }
-
-    if (queryValues.length > 0) {
-        queryValues.push(id);
-        
-        
-        query += `${querySet.join(", ")} WHERE id = $${queryValues.length} RETURNING *`;
-        
-        const { rows } = await SQLClient.query(query, queryValues);
-        return rows[0];
-
-    } else {
-        throw new Error("No field given");
-    }
-};
-
-export const deleteAddress = async (SQLClient, id) => {
-  const { rowCount } = await SQLClient.query(
-    `DELETE FROM address WHERE id = $1`,
-    [id]
-  );
-  return rowCount > 0;
+  return rows;
 };

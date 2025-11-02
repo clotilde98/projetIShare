@@ -16,14 +16,15 @@ CREATE TABLE Client (
     CHECK (number > 0),
     registration_date DATE DEFAULT NOW(),
     photo VARCHAR(255) NULL,
-    is_admin BOOLEAN DEFAULT FALSE
+    is_admin BOOLEAN DEFAULT FALSE,
+    address_id INT NOT NULL  REFERENCES Address(id) ON DELETE CASCADE
 );
 
 CREATE TABLE Address (
     id SERIAL PRIMARY KEY,
     city VARCHAR(50) NOT NULL,
     postal_code VARCHAR(10) NOT NULL,
-    client_id INT REFERENCES Client(id) ON DELETE CASCADE
+    UNIQUE (city, postal_code)
 );
 
 CREATE TABLE Post (

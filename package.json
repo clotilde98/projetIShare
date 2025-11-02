@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon server.js",
-    "initDB": "node scripts/JS/initDB.js"
+    "initDB": "node scripts/JS/initDB.js",
+"seed-external": "node Scripts/seed_addresses_external.js",
+    "axios": "^1.x"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +19,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+    "node-fetch": "^3.3.2",
     "pg": "^8.16.3"
   },
   "devDependencies": {

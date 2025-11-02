@@ -2,6 +2,27 @@ import { pool } from '../database/database.js';
 import * as addressModel from '../model/addressDB.js';
 
 
+export const importPostalData = async (req, res) => {
+  try {
+    const result = await addressModel.importPostalData();
+    res.status(200).send(result);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+};
+
+export const getAllCities = async (req, res) => {
+  try {
+    const cities = await addressModel.getAllCities();
+    res.send(cities);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+};
+
+
+
+
 export const getAddressByUser = async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
@@ -16,5 +37,6 @@ export const getAddressByUser = async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur lors de la lecture des adresses' });
   }
 };
+
 
 

@@ -1,6 +1,7 @@
 import { pool } from "../database/database.js";
 import * as userModel from "../model/userDB.js";
 import * as addressModel from "../model/addressDB.js";
+import AddressService from '../services/AddressService.js'; 
 
 export const createUser = async (req, res) => {
   try {
@@ -12,54 +13,39 @@ export const createUser = async (req, res) => {
 }
 
 
-// Créer un utilisateur + plusieurs adresses
 export const createUserWithAddress = async (req, res) => {
-  let SQLClient;
-  
+    // Le client entre : username, email, password, street, number, ET geoId (sélectionné)
+    const { username, email, password, street, number, address_id } = req.body;
     
+    if (!username || !email || !password || !street || !number || !address_id) {
+        return res.status(400).json({ error: "Tous les champs sont requis." });
+    }
+    
+    // NOTE : La validation de l'existence de geoId est assurée par la contrainte REFERENCES.
+
     try {
-        const { client, address } = req.body;
-        const { username, email, password,photo,isAdmin } = client;
-        const { street, number, postalCode, city } = address;
+        const clientData = { 
+            username, 
+            email, 
+            password, 
+            street, 
+            number: parseInt(number, 10),
+            address_id: parseInt(geoId, 10) // L'ID de référence sélectionné
+        };
 
-        if (!username || !email || !password || !street || !number || !postalCode || !city) {
-            return res.status(400).send("Champs utilisateur/adresse obligatoires manquants."); 
-        }
+        // 1. Appel du Model Client (qui gère le hachage et l'insertion)
+        const newClientId = await userModel.createUser(pool, clientData); 
 
-        if (isNaN(number) || parseInt(number) <= 0) { 
-            return res.status(400).send("Le numéro de rue (number) doit être un entier positif."); 
-        }
-
-        SQLClient = await pool.connect();
-        await SQLClient.query("BEGIN");  
-        
-        const { id: clientID } = await userModel.createUser(SQLClient, client);
-        await addressModel.createAddress(SQLClient, address , clientID);
-
-        await SQLClient.query("COMMIT"); 
-
-        return res.status(201).send({
-            message: "Utilisateur et adresse créés avec succès",
-            
+        // 2. Réponse
+        res.status(201).json({ 
+            message: "Inscription réussie.", 
+            clientId: newClientId
         });
 
-    } catch (err) {
-        console.error("Erreur lors de l'enregistrement de l'utilisateur:", err); 
-        
-        if (SQLClient) { 
-            try {
-                await SQLClient.query("ROLLBACK");
-            } catch (err) { 
-                console.error(err);
-            }
-        }
-        
-        return res.status(500).send("Erreur interne du serveur. L'opération a été annulée.");
-        
-    } finally {
-        if (SQLClient) {
-            SQLClient.release();
-        }
+    } catch (error) {
+        // Gère les erreurs de BDD (ex: email déjà utilisé, geoId inexistant)
+        console.error("Erreur lors de l'inscription:", error);
+        res.status(500).json({ error: "Échec de l'inscription.", details: error.message });
     }
 };
 
