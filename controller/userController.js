@@ -1,7 +1,6 @@
 import { pool } from "../database/database.js";
 import * as userModel from "../model/userDB.js";
 import * as addressModel from "../model/addressDB.js";
-import AddressService from '../services/AddressService.js'; 
 
 export const createUser = async (req, res) => {
   try {

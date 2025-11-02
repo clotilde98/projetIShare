@@ -7,7 +7,6 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon server.js",
     "initDB": "node scripts/JS/initDB.js",
-"seed-external": "node Scripts/seed_addresses_external.js",
     "axios": "^1.x"
   },
   "keywords": [],
@@ -15,6 +14,8 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "argon2": "^0.44.0",
+    "axios": "^1.13.1",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",

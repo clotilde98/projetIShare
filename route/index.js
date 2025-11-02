@@ -11,5 +11,5 @@ router.use('/users', userRouter);
 router.use('/posts', checkJWT, postRouter);
 router.use('/reservation', checkJWT, reservationRouter);
 router.post('/login', login)
-app.use('/adresses', addressRoute);
+router.use('/adresses', addressRoute);
 export default router;
