@@ -1,4 +1,3 @@
--- Suppression dans l'ordre inverse des dépendances
 DROP TABLE IF EXISTS Comment;
 DROP TABLE IF EXISTS Post_category;
 DROP TABLE IF EXISTS Reservation CASCADE;
@@ -8,7 +7,6 @@ DROP TABLE IF EXISTS Category_product CASCADE;
 DROP TABLE IF EXISTS Address CASCADE;
 
 
--- 1. Création de la table Address (Référence VILLE/CP)
 CREATE TABLE Address (
     id SERIAL PRIMARY KEY,
     city VARCHAR(50) NOT NULL,
@@ -16,7 +14,6 @@ CREATE TABLE Address (
     UNIQUE (city, postal_code)
 );
 
--- 2. Création de la table Client (Contient l'adresse complète)
 CREATE TABLE Client (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) NOT NULL,
@@ -31,7 +28,6 @@ CREATE TABLE Client (
     address_id INT NOT NULL REFERENCES Address(id) ON DELETE CASCADE
 );
 
--- 3. Création de la table Post (Dépend de Client et Address)
 CREATE TABLE Post (
     id SERIAL PRIMARY KEY,
     post_date DATE DEFAULT NOW(),
@@ -79,23 +75,11 @@ CREATE TABLE Comment (
 );
 
 
--- ----------------------------------------------------
--- DONNÉES D'INSERTION CORRIGÉES
--- ----------------------------------------------------
 
--- 1. Insérer l'Adresse de référence (Ville/CP) en premier
-INSERT INTO Address (city, postal_code) 
-VALUES ('Namur', '5000') 
-RETURNING id; 
--- ID 1 est créé ici
 
--- 2. Insérer le Client (y compris rue/numéro) en utilisant l'address_id = 1
 INSERT INTO Client (username, email, password, is_admin, street, number, address_id)
 VALUES ('Clotilde', 'clotilde@example.com', 'motdepasse', FALSE, 'Rue des Fleurs', 15, 1)
-RETURNING id; 
--- ID 1 est créé ici
 
--- 3. Insérer les Catégories
 INSERT INTO Category_product (name_category) VALUES ('Food'); -- ID 1
 INSERT INTO Category_product (name_category) VALUES ('Beverage'); -- ID 2
 INSERT INTO Category_product (name_category) VALUES ('Frozen food'); -- ID 3

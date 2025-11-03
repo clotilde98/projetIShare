@@ -3,17 +3,18 @@ import 'dotenv/config';
 import argon2 from "argon2";
 
 
-// Créer un utilisateur
-export const createUser = async (SQLClient, { username, email, password,number,street, photo = null, is_admin = false }) => {
+export const createUser = async (SQLClient, { username, email, password,number,street, photo = null, is_admin = false,address_id }) => {
   const pepper = process.env.PEPPER;
   const passwordWithPepper = password + pepper;
   const hash = await argon2.hash(passwordWithPepper);
   const { rows } = await SQLClient.query(
-    `INSERT INTO Client (username, email, password,number,street, photo, is_admin) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-    [username, email, hash,number,street,photo, is_admin]
+    `INSERT INTO Client (username, email, password,number,street, photo, is_admin,address_id) VALUES ($1, $2, $3, $4, $5, $6, $7 ,$8) RETURNING *`,
+    [username, email, hash,number,street,photo, is_admin,address_id]
   );
   return rows[0];
 };
+
+
 
 export const getUserById = async (SQLClient, id) => {
   const { rows } = await SQLClient.query(
@@ -37,23 +38,19 @@ export const getUserByEmail = async (SQLClient, email) => {
 
 
 
-// Lire un utilisateur + sa première adresse
 export const getUserWithAddress = async (SQLClient, id) => {
   const { rows } = await SQLClient.query(
-    `SELECT c.id, c.username, c.email, c.password, c.registration_date, c.photo, c.is_admin,
-            a.street, a.numero, a.city, a.postal_code
-    FROM Client c
-    LEFT JOIN Address a ON c.id = a.Client_id
-    WHERE c.id = $1
-    ORDER BY a.id
-    LIMIT 1`,
+    `SELECT c.id, c.username, c.email, c.registration_date, c.street, c.number, a.city, a.postal_code
+     FROM Client c
+     JOIN Address a ON c.address_id = a.id
+     WHERE c.id = $1`,
     [id]
   );
-
-  return rows[0] || null; 
+  return rows[0]; 
 };
 
-export const updateAddress = async (SQLClient, id, { username, email, password, photo,isAdmin }) => {
+  
+export const updateUser = async (SQLClient, id, { username, email, password, photo,isAdmin }) => {
     let query = "UPDATE Client SET ";
     const querySet = []; 
     const queryValues = []; 
@@ -95,7 +92,6 @@ export const updateAddress = async (SQLClient, id, { username, email, password, 
     }
 };
 
-// Supprimer un utilisateur
 export const deleteUser = async (SQLClient, id) => {
   const { rowCount } = await SQLClient.query(
     'DELETE FROM Client WHERE id = $1',
@@ -105,3 +101,35 @@ export const deleteUser = async (SQLClient, id) => {
 };
 
 
+
+export const getUsers = async (SQLClient, { name, role, page = 1, limit = 10 }) => {
+  const offset = (page - 1) * limit;
+  const conditions = [];
+  const values = [];
+
+  if (name) {
+    conditions.push(`LOWER(c.username) LIKE LOWER($${values.length + 1})`);
+    values.push(`%${name}%`);
+  }
+
+  if (role === 'admin') {
+    conditions.push(`c.is_admin = true`);
+  } else if (role === 'user') {
+    conditions.push(`c.is_admin = false`);
+  }
+
+  const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+
+  const query = `
+    SELECT c.id, c.username, c.email, c.registration_date,
+           c.is_admin, a.city, a.postal_code
+    FROM Client c
+    JOIN Address a ON c.address_id = a.id
+    ${whereClause}
+    ORDER BY c.registration_date DESC
+    LIMIT ${limit} OFFSET ${offset}
+  `;
+
+  const { rows } = await SQLClient.query(query, values);
+  return rows;
+};

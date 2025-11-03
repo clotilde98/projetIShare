@@ -1,19 +1,20 @@
 import { Router } from 'express';
 import {checkJWT} from '../middleware/identification/jwt.js'
 import {
-  createUserWithAddress,
   getUserWithAddress,
-  updateUserWithAddress,
+  updateUser,
   deleteUser,
-  createUser
+  createUser,
+  getUsers
 } from "../controller/userController.js";
 
 const router = Router();
 
-router.post("/", createUserWithAddress);  
-router.post("/", createUser);           
-router.get("/:id", checkJWT, getUserWithAddress);         
-router.patch("/", checkJWT, updateUserWithAddress);     
-router.delete("/:id", checkJWT, deleteUser);       
+router.post("/", createUser);      
+router.get('/', getUsers);
+router.get("/:id", getUserWithAddress);         
+router.patch("/", checkJWT, updateUser);     
+router.delete("/:id", checkJWT, deleteUser);
+
 
 export default router;
