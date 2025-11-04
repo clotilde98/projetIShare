@@ -1,14 +1,17 @@
 import { pool } from "../database/database.js";
 import * as userModel from "../model/userDB.js";
-
 export const createUser = async (req, res) => {
   try {
-    const newClient = await userModel.createUser(pool, req.body);
-    res.status(201).send("client created " + newClient.id);
-  } catch (err){
-    res.send(err.message)
+    const photo = req.file ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}` : null;
+
+    const newClient = await userModel.createUser(pool, {...req.body,photo });
+    res.status(201).json({
+      message: 'Client created', id: newClient.id
+    });
+  } catch (err) {
+    res.status(400).send(err.message);
   }
-}
+};
 
 
 export const getUserWithAddress = async (req, res) => {

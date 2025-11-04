@@ -8,7 +8,7 @@ const port = 3002;
 
 app.use(express.json());
 app.use(Router);
-
+app.use('/uploads', express.static('uploads'));
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);
 

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import uploadPhoto from '../middleware/uploadPhoto/photo.js';
 import {checkJWT} from '../middleware/identification/jwt.js'
 import {
   getUserWithAddress,
@@ -10,7 +11,7 @@ import {
 
 const router = Router();
 
-router.post("/", createUser);      
+router.post("/",uploadPhoto, createUser);      
 router.get('/', getUsers);
 router.get("/:id", getUserWithAddress);         
 router.patch("/", checkJWT, updateUser);     
