@@ -52,7 +52,7 @@ export const getUserWithAddress = async (SQLClient, id) => {
 };
 
 
-export const updateUser = async (SQLClient, { id, username, email, password, photo, isAdmin }) => {
+export const updateUser = async (SQLClient, { id, username, password, photo, isAdmin }) => {
     let query = "UPDATE Client SET ";
     const querySet = [];
     const queryValues = [];
@@ -60,11 +60,6 @@ export const updateUser = async (SQLClient, { id, username, email, password, pho
     if (username ) {
         queryValues.push(username);
         querySet.push(`username = $${queryValues.length}`);
-    }
-    
-    if (email ) {
-        queryValues.push(email);
-        querySet.push(`email = $${queryValues.length}`);
     }
     
     if (password ) {

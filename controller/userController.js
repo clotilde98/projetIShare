@@ -4,7 +4,7 @@ import * as addressModel from "../model/addressDB.js";
 
 export const createUser = async (req, res) => {
   try {
-    const newClient = await userModel.createUser(pool, req.body);
+    const newClient = await userModel.createUser(pool, req.val);
     res.status(201).send("client created " + newClient.id);
   } catch (err){
     res.send(err.message)

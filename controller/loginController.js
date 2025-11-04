@@ -16,6 +16,7 @@ export const login = async (req, res) => {
             return res.status(401).send("User/Password incorrect");
         }
 
+
         const token = jwt.sign(
             { 
                 id: user.id, 
