@@ -1,5 +1,5 @@
 import { pool } from "../database/database.js";
-import * as userModel from "../model/userDB.js";
+import * as userModel from "../model/client.js";
 
 export const createUser = async (req, res) => {
   try {

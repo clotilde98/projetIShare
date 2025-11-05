@@ -1,4 +1,4 @@
-import {getUserByEmail} from '../model/userDB.js';
+import {getUserByEmail} from '../model/client.js';
 import { pool } from "../database/database.js";
 import argon2 from "argon2";
 import 'dotenv/config';

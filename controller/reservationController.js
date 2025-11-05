@@ -2,7 +2,7 @@ import { pool } from "../database/database.js";
 
 import {readPost} from '../model/postDB.js'
 
-import {getUserById} from '../model/userDB.js'
+import {getUserById} from '../model/client.js'
 
 import * as reservationModel from '../model/reservationDB.js';
 
