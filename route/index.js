@@ -1,5 +1,5 @@
 import Router  from 'express';
-import userRouter from './userRoute.js';
+import userRouter from './clientRoute.js';
 import postRouter from './postRoute.js';
 import reservationRouter from './reservationRoute.js';
 import {login} from '../controller/loginController.js'

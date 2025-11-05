@@ -7,7 +7,7 @@ import {
   deleteUser,
   createUser,
   getUsers
-} from "../controller/userController.js";
+} from "../controller/clientController.js";
 
 import {clientValidatorMiddleware} from '../middleware/validation.js';
 
