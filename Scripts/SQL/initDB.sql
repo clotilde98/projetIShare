@@ -80,18 +80,15 @@ CREATE TABLE Comment (
 INSERT INTO Client (username, email, password, is_admin, street, number, address_id)
 VALUES ('Clotilde', 'clotilde@example.com', 'motdepasse', FALSE, 'Rue des Fleurs', 15, 1)
 
-INSERT INTO Category_product (name_category) VALUES ('Food'); -- ID 1
-INSERT INTO Category_product (name_category) VALUES ('Beverage'); -- ID 2
-INSERT INTO Category_product (name_category) VALUES ('Frozen food'); -- ID 3
+INSERT INTO Category_product (name_category) VALUES ('Food'); 
+INSERT INTO Category_product (name_category) VALUES ('Beverage'); 
+INSERT INTO Category_product (name_category) VALUES ('Frozen food'); 
 
--- 4. Insérer le Post (adresse du post = 1, client_id = 1)
 INSERT INTO Post (description, title, number_of_places, post_status, address_id, client_id) 
 VALUES 
 ('Très bonnes pommes à donner gratuitement.', 'Pommes à donner', 3, 'available', 1, 1)
 RETURNING id; 
--- ID 1 est créé ici
 
--- 5. Insérer les données liées
 INSERT INTO Reservation (post_id, client_id) VALUES (1, 1);
 INSERT INTO Post_category (id_category, id_ad) VALUES (1, 1);
 INSERT INTO Comment(content, id_post, id_costumer)  
