@@ -1,164 +1,44 @@
 import { pool } from "../database/database.js";
 import * as userModel from "../model/userDB.js";
-import * as addressModel from "../model/addressDB.js";
 
 export const createUser = async (req, res) => {
   try {
-    const newClient = await userModel.createUser(pool, req.val);
-    res.status(201).send("client created " + newClient.id);
-  } catch (err){
-    res.send(err.message)
+const photo = req.file ? `${req.protocol}://${req.get('host')}/images/${req.file.filename}`  : null;   
+ const newClient = await userModel.createUser(pool, {...req.body,photo });
+    res.status(201).json({
+      message: 'Client created', id: newClient.id});
+  } catch (err) {
+    res.status(400).send(err.message);
   }
-}
-
-
-// Créer un utilisateur + plusieurs adresses
-
-export const createUserWithAddress = async (req, res) => {
-    let SQLClient; 
-    
-    try {
-        const { client, address } = req.body;
-
-        if (!client || !address) {
-            return res.status(400).send("Les objets 'client' ou 'address' sont manquants dans la requête.");
-        }
-
-        const { username, email, password } = client;
-        const { street, number, postalCode, city } = address;
-
-        if (!username || !email || !password || !street || !number || !postalCode || !city) {
-            return res.status(400).send("Champs utilisateur/adresse obligatoires manquants."); 
-        }
-
-        if (isNaN(number) || parseInt(number) <= 0) { 
-            return res.status(400).send("Le numéro de rue (number) doit être un entier positif."); 
-        }
-
-        SQLClient = await pool.connect();
-        await SQLClient.query("BEGIN");  
-        
-        const { id: clientID } = await userModel.createUser(SQLClient, client);
-        await addressModel.createAddress(SQLClient, {street, number, postalCode, city }, clientID);
-
-        await SQLClient.query("COMMIT"); 
-
-        return res.status(201).send({
-            message: "Utilisateur et adresse créés avec succès",
-            
-        });
-
-    } catch (err) {
-        console.error("Erreur lors de l'enregistrement de l'utilisateur:", err); 
-        
-        if (SQLClient) { 
-            try {
-                await SQLClient.query("ROLLBACK");
-            } catch (err) { 
-                console.error(err);
-            }
-        }
-        
-        return res.status(500).send("Erreur interne du serveur. L'opération a été annulée.");
-        
-    } finally {
-        if (SQLClient) {
-            SQLClient.release();
-        }
-    }
 };
 
 
 export const getUserWithAddress = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) return res.status(400).json({ message: 'ID invalide' });
+
+    const user = await userModel.getUserWithAddress(pool, id);
+    if (!user) return res.status(404).json({ message: 'Client non trouvé' });
+
+    res.json(user);
+  } catch (err) {
+    console.error('Erreur getUserWithAddress:', err.message);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+}
+
+
+export const updateUser= async(req, res) => {
     try {
-        const clientID = req.params.id; 
-        
-        const user = await userModel.getUserById(pool, clientID); 
-        
-        if (!user) {
-            return res.status(404).json({ error: "Utilisateur non trouvé." });
-        }
-        
-        const address = await addressModel.getAddressByUser(pool, clientID); 
-        
-        const userDetails = {
-            ...user, 
-            address: address || null 
-        };
-
-        return res.status(200).json(userDetails);
-
-    } catch (err) {
-        res.status(500).send(err.message);
+        await userModel.updateUser(pool, req.body);
+        res.sendStatus(204)
+    }catch(err){
+        console.log(err); 
+        res.sendStatus(500);
     }
-};
+}
 
-
-
-export const updateUserWithAddress = async (req, res) => {
-    let SQLClient; 
-    
-    try {
-        
-        const clientID = req.params.id; 
-        const { client, address } = req.body;
-
-        if (!client && !address) {
-            return res.status(400).send("Veuillez fournir des données d'utilisateur ou d'adresse à mettre à jour.");
-        }
-
-        SQLClient = await pool.connect();
-        await SQLClient.query("BEGIN"); 
-        
-        let userUpdated = null;
-        let addressUpdated = null;
-
-        if (client) {
-          
-            userUpdated = await userModel.updateUser(SQLClient, clientID, client); 
-        }
-        
-        if (address) {
-            
-            addressUpdated = await addressModel.updateAddress(SQLClient, clientID, address); 
-        }
-
-        if ((client && !userUpdated) || (address && !addressUpdated)) {
-             await SQLClient.query("ROLLBACK"); 
-             return res.status(404).send("Utilisateur ou adresse non trouvée pour l'ID : " + clientID);
-        }
-
-        await SQLClient.query("COMMIT"); 
-
-
-        return res.status(200).send({
-            message: "Utilisateur et adresse mis à jour avec succès",
-            userID: clientID,
-            updatedUser: userUpdated || client, 
-            updatedAddress: addressUpdated || address 
-        });
-
-    } catch (err) {
-        console.error("Erreur lors de la mise à jour de l'utilisateur:", err); 
-        
-        if (SQLClient) { 
-            try {
-                await SQLClient.query("ROLLBACK");
-            } catch (err) {
-                console.error(err);
-            }
-        }
-        
-        return res.status(500).send("Erreur interne du serveur. La mise à jour a été annulée.");
-        
-    } finally {
-        if (SQLClient) {
-            SQLClient.release(); 
-        }
-    }
-};
-
-// Supprimer un utilisateur + toutes ses adresses
 export const deleteUser = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
@@ -167,10 +47,34 @@ export const deleteUser = async (req, res) => {
     const success = await userModel.deleteUser(pool, id);
     if (!success) return res.status(404).json({ error: "Utilisateur non trouvé" });
 
-    res.json({ message: "Utilisateur et toutes ses adresses supprimés avec succès" });
+    res.json({ message: "Utilisateur supprimé avec succès" });
   } catch (err) {
     console.error("Erreur lors de la suppression de l'utilisateur :", err.message);
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
 
+
+
+
+export const getUsers = async (req, res) => {
+  try {
+    const { name, role, page, limit } = req.query;
+
+    if (role && role !== 'admin' && role !== 'user') {
+      return res.status(400).json({ message: 'Le rôle doit être "admin" ou "user".' });
+    }
+
+    const users = await userModel.getUsers(pool, {
+      name,
+      role,
+      page: parseInt(page) || 1,
+      limit: parseInt(limit) || 10
+    });
+
+    res.status(200).json(users);
+  } catch (err) {
+    console.error('Erreur récupération utilisateurs :', err.message);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+};

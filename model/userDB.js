@@ -3,21 +3,22 @@ import 'dotenv/config';
 import argon2 from "argon2";
 
 
-// Créer un utilisateur
-export const createUser = async (SQLClient, { username, email, password, photo = null, is_admin = false }) => {
+export const createUser = async (SQLClient, { username, email, password,number,street, photo = null, is_admin = false,address_id }) => {
   const pepper = process.env.PEPPER;
   const passwordWithPepper = password + pepper;
   const hash = await argon2.hash(passwordWithPepper);
   const { rows } = await SQLClient.query(
-    `INSERT INTO Client (username, email, password, photo, is_admin) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-    [username, email, hash, photo, is_admin]
+    `INSERT INTO Client (username, email, password,number,street, photo, is_admin,address_id) VALUES ($1, $2, $3, $4, $5, $6, $7 ,$8) RETURNING *`,
+    [username, email, hash,number,street,photo, is_admin,address_id]
   );
   return rows[0];
 };
 
+
+
 export const getUserById = async (SQLClient, id) => {
   const { rows } = await SQLClient.query(
-    `SELECT id, username, password, email, registration_date, photo, is_admin
+    `SELECT *
      FROM Client
      WHERE id = $1`,
     [id]
@@ -35,31 +36,33 @@ export const getUserByEmail = async (SQLClient, email) => {
   return rows[0] || null;
 };
 
-// Lire un utilisateur + sa première adresse
+
+
 export const getUserWithAddress = async (SQLClient, id) => {
   const { rows } = await SQLClient.query(
-    `SELECT c.id, c.username, c.email, c.password, c.registration_date, c.photo, c.is_admin,
-            a.street, a.numero, a.city, a.postal_code
-    FROM Client c
-    LEFT JOIN Address a ON c.id = a.Client_id
-    WHERE c.id = $1
-    ORDER BY a.id
-    LIMIT 1`,
+    `SELECT c.id, c.username, c.email, c.registration_date, c.street, c.number, a.city, a.postal_code
+     FROM Client c
+     JOIN Address a ON c.address_id = a.id
+     WHERE c.id = $1`,
     [id]
   );
-
-  return rows[0] || null; 
+  return rows[0]; 
 };
 
-
-export const updateUser = async (SQLClient, { id, username, password, photo, isAdmin }) => {
+  
+export const updateUser = async (SQLClient, id, { username, email, password, photo,isAdmin }) => {
     let query = "UPDATE Client SET ";
-    const querySet = [];
-    const queryValues = [];
+    const querySet = []; 
+    const queryValues = []; 
 
     if (username ) {
         queryValues.push(username);
         querySet.push(`username = $${queryValues.length}`);
+    }
+    
+    if (email ) {
+        queryValues.push(email);
+        querySet.push(`email = $${queryValues.length}`);
     }
     
     if (password ) {
@@ -89,7 +92,6 @@ export const updateUser = async (SQLClient, { id, username, password, photo, isA
     }
 };
 
-// Supprimer un utilisateur
 export const deleteUser = async (SQLClient, id) => {
   const { rowCount } = await SQLClient.query(
     'DELETE FROM Client WHERE id = $1',
@@ -99,142 +101,35 @@ export const deleteUser = async (SQLClient, id) => {
 };
 
 
-export const findUsersByUsername = async (SQLClient, searchTerm) => {
-    
-    
-    const searchPattern = `%${searchTerm}%`;
 
-    // CORRECTION: Utiliser le searchPattern comme paramètre de requête pour éviter les injections SQL.
-    const { rows } = await SQLClient.query(
-        `SELECT id, username, email, registration_date, photo, is_admin
-         FROM Client
-         WHERE username ILIKE $1`, 
-        [searchPattern] // Ajout du paramètre
-    );
+export const getUsers = async (SQLClient, { name, role, page = 1, limit = 10 }) => {
+  const offset = (page - 1) * limit;
+  const conditions = [];
+  const values = [];
 
-    return rows;
-};
+  if (name) {
+    conditions.push(`LOWER(c.username) LIKE LOWER($${values.length + 1})`);
+    values.push(`%${name}%`);
+  }
 
+  if (role === 'admin') {
+    conditions.push(`c.is_admin = true`);
+  } else if (role === 'user') {
+    conditions.push(`c.is_admin = false`);
+  }
 
-export const findUsersByUsernamePAGINATED = async (SQLClient, searchTerm, limit, offset) => {
-    
-    // Le terme de recherche avec des jokers (%) pour la recherche partielle insensible à la casse
-    const searchPattern = `%${searchTerm}%`;
+  const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
-    // --- 1. Requête pour le COUNT TOTAL (sans pagination) ---
-    const countQuery = await SQLClient.query(
-        `SELECT COUNT(id) FROM Client
-         WHERE username ILIKE $1`,
-        [searchPattern]
-    );
-    const totalCount = parseInt(countQuery.rows[0].count, 10);
-    
-    // --- 2. Requête pour les DONNÉES PAGINÉES ---
-    const { rows } = await SQLClient.query(
-        `SELECT id, username, email, registration_date, photo, is_admin
-         FROM Client
-         WHERE username ILIKE $1
-         ORDER BY username ASC 
-         LIMIT $2 OFFSET $3`, // LIMIT et OFFSET appliquent la pagination
-        [searchPattern, limit, offset]
-    );
+  const query = `
+    SELECT c.id, c.username, c.email, c.registration_date,
+           c.is_admin, a.city, a.postal_code
+    FROM Client c
+    JOIN Address a ON c.address_id = a.id
+    ${whereClause}
+    ORDER BY c.registration_date DESC
+    LIMIT ${limit} OFFSET ${offset}
+  `;
 
-    // Retourne les données paginées ET le total
-    return {
-        totalCount: totalCount,
-        users: rows
-    };
-};
-
-
-export const updateUserWithAddress = async (req, res) => {
-    let SQLClient; 
-    
-    try {
-        
-        const clientID = req.params.id; 
-        const { client, address } = req.body;
-
-        if (!client && !address) {
-            return res.status(400).send("Veuillez fournir des données d'utilisateur ou d'adresse à mettre à jour.");
-        }
-
-        SQLClient = await pool.connect();
-        await SQLClient.query("BEGIN"); 
-        
-        let userUpdated = null;
-        let addressUpdated = null;
-
-        if (client) {
-          
-            userUpdated = await userModel.updateUser(SQLClient, clientID, client); 
-        }
-        
-        if (address) {
-            
-            addressUpdated = await addressModel.updateAddress(SQLClient, clientID, address); 
-        }
-
-        if ((client && !userUpdated) || (address && !addressUpdated)) {
-             await SQLClient.query("ROLLBACK"); 
-             return res.status(404).send("Utilisateur ou adresse non trouvée pour l'ID : " + clientID);
-        }
-
-        await SQLClient.query("COMMIT"); 
-
-
-        return res.status(200).send({
-            message: "Utilisateur et adresse mis à jour avec succès",
-            userID: clientID,
-            updatedUser: userUpdated || client, 
-            updatedAddress: addressUpdated || address 
-        });
-
-    } catch (err) {
-        console.error("Erreur lors de la mise à jour de l'utilisateur:", err); 
-        
-        if (SQLClient) { 
-            try {
-                await SQLClient.query("ROLLBACK");
-            } catch (err) {
-                console.error(err);
-            }
-        }
-        
-        return res.status(500).send("Erreur interne du serveur. La mise à jour a été annulée.");
-        
-    } finally {
-        if (SQLClient) {
-            SQLClient.release(); 
-        }
-    }
-};
-
-
-export const findUsersByUsernameAndFilter = async (SQLClient, searchTerm, adminFilter) => {
-    
-    // Le premier paramètre ($1) est toujours le searchPattern
-    const searchPattern = `%${searchTerm}%`;
-    let queryParams = [searchPattern];
-    let whereClauses = [`username ILIKE $1`];
-    
-    // --- Logique du Filtre is_admin ---
-    if (adminFilter === 'admins') {
-        whereClauses.push(`is_admin = TRUE`);
-    } else if (adminFilter === 'users') {
-        whereClauses.push(`is_admin = FALSE`);
-    }
-
-    // Jointure de toutes les clauses WHERE
-    const whereCondition = whereClauses.length > 0 ? `WHERE ` + whereClauses.join(' AND ') : '';
-
-    const { rows } = await SQLClient.query(
-        `SELECT id, username, email, registration_date, photo, is_admin
-         FROM Client
-         ${whereCondition}
-         ORDER BY username ASC`, 
-        queryParams
-    );
-
-    return rows; // Retourne la liste filtrée
+  const { rows } = await SQLClient.query(query, values);
+  return rows;
 };
