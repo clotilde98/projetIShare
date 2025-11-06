@@ -10,12 +10,14 @@ import {
 
 import {clientValidatorMiddleware} from '../middleware/validation.js';
 
+import {isSameUser} from '../middleware/identification/user.js'
+
 const router = Router();
 
 router.post("/", clientValidatorMiddleware.addClientValidator, createUser);      
 router.post("/withAddress", clientValidatorMiddleware.addClientValidator, createUserWithAddress);      
-router.get("/:id", checkJWT, clientValidatorMiddleware.loginValidator,getUserWithAddress);         
-router.patch("/", checkJWT, clientValidatorMiddleware.updateClientValidator , updateUserWithAddress);     
-router.delete("/:id", checkJWT, deleteUser);       
+router.get("/:id", checkJWT, getUserWithAddress);         
+router.patch("/", checkJWT, isSameUser, clientValidatorMiddleware.updateClientValidator , updateUserWithAddress);     
+router.delete("/:id", checkJWT, isSameUser, deleteUser);       
 
 export default router;

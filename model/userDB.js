@@ -151,8 +151,8 @@ export const updateUserWithAddress = async (req, res) => {
     let SQLClient; 
     
     try {
-        
-        const clientID = req.params.id; 
+        console.log("tttt");
+        const clientID = req.user.id;
         const { client, address } = req.body;
 
         if (!client && !address) {

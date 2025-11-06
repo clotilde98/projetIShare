@@ -18,8 +18,6 @@ CREATE TABLE Client (
 
 CREATE TABLE Address (
     id SERIAL PRIMARY KEY,
-    street VARCHAR(100) NOT NULL,
-    number INT NOT NULL ,
     city VARCHAR(50) NOT NULL,
     postal_code VARCHAR(10) NOT NULL,
     CHECK (number > 0),
