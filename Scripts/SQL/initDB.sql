@@ -19,8 +19,8 @@ CREATE TABLE Client (
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     street VARCHAR(100) NOT NULL,
-    number INT NOT NULL,
-    CHECK (number > 0),
+    street_number INT NOT NULL,
+    CHECK (street_number > 0),
     registration_date DATE DEFAULT NOW(),
     photo VARCHAR(255) NULL,
     is_admin BOOLEAN DEFAULT FALSE,
@@ -39,8 +39,8 @@ CREATE TABLE Post (
     CHECK (post_status IN ('available', 'unavailable')),
     photo VARCHAR(255) NULL,
     street VARCHAR(100) NOT NULL,
-    number INT NOT NULL,
-    CHECK (number > 0),
+    street_number INT NOT NULL,
+    CHECK (street_number > 0),
     address_id INT NOT NULL REFERENCES Address(id) ON DELETE CASCADE, 
     client_id INT NOT NULL REFERENCES Client(id) ON DELETE CASCADE
 );
@@ -87,19 +87,3 @@ INSERT INTO Category_product (name_category) VALUES ('Beverage');
 INSERT INTO Category_product (name_category) VALUES ('Frozen food');
 
 
--- Insérer l'utilisateur Clotilde et une adresse
-INSERT INTO Client (username, email, password, is_admin)
-VALUES ('Clotilde', 'clotilde@example.com', 'motdepasse', FALSE);
-
-INSERT INTO Address (street, number, city, postal_code, client_id)
-VALUES ('Rue des Fleurs', 15, 'Namur', '5000', 1);
-
-INSERT INTO Post (description, title, number_of_places, post_status, photo, address_id, client_id) 
-VALUES 
-('Tres bonnes pommes', 'Pommes a donner', 3, 'available', NULL, 1, 1);
-
-INSERT INTO Reservation (post_id, client_id) VALUES (1, 1);
-
-INSERT INTO Post_category (id_category, id_ad) VALUES (1, 1);
-
-INSERT INTO Comment(content, id_post, id_costumer)  VALUES ('pouvez-vous donnez plus de précision', 1, 1); 

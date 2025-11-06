@@ -10,13 +10,15 @@ import {
 import {checkJWT} from '../middleware/identification/jwt.js'
 import {postValidatorMiddleware} from '../middleware/validation.js';
 
+import {postOwner} from '../middleware/identification/postOwner.js';
+
 
 const router = Router();
 
-router.post("/",checkJWT,postValidatorMiddleware.createPostValidator,createPost);           
+router.post("/", checkJWT, postValidatorMiddleware.createPostValidator, createPost);           
 router.get("/byCategory", searchPostByCategory);  
 router.get("/:id", getPost);         
-router.patch("/",checkJWT,postValidatorMiddleware.updatePostValidator,updatePost);     
-router.delete("/:id",checkJWT, deletePost);      
+router.patch("/", checkJWT, postOwner, postValidatorMiddleware.updatePostValidator, updatePost);     
+router.delete("/:id", checkJWT, postOwner, deletePost);      
 
 export default router;

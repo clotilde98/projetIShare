@@ -16,7 +16,7 @@ const updateClientSchema =  vine.object({
     streetNumber : vine.number().optional(), 
     photo:vine.string().optional(),
     password: vine.string().optional(), 
-    is_admin:vine.boolean().optional()
+    isAdmin:vine.boolean().optional()
 }); 
 
 const loginSchema = vine.object({

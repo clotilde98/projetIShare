@@ -2,7 +2,6 @@ import { Router } from 'express';
 import {checkJWT} from '../middleware/identification/jwt.js'
 import { uploadPhoto } from '../middleware/photo/upload.js';
 import {
-  getUserWithAddress,
   updateUser,
   deleteUser,
   createUser,
@@ -11,12 +10,13 @@ import {
 
 import {clientValidatorMiddleware} from '../middleware/validation.js';
 
+import {isSameUser} from '../middleware/identification/user.js'
+
 const router = Router();
 
-router.post("/", clientValidatorMiddleware.addClientValidator,uploadPhoto, createUser);      
-router.post("/withAddress", clientValidatorMiddleware.addClientValidator, getUsers);      
-router.get("/:id", checkJWT, clientValidatorMiddleware.loginValidator,getUserWithAddress);         
-router.patch("/", checkJWT, clientValidatorMiddleware.updateClientValidator , updateUser);     
-router.delete("/:id", checkJWT, deleteUser);       
+router.post("/", clientValidatorMiddleware.addClientValidator, uploadPhoto, createUser);           
+router.get("/:id", checkJWT, getUsers);         
+router.patch("/", checkJWT, isSameUser, clientValidatorMiddleware.updateClientValidator , updateUser);     
+router.delete("/:id", checkJWT, isSameUser, deleteUser);       
 
 export default router;

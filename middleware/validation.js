@@ -10,7 +10,7 @@ export const clientValidatorMiddleware = {
             req.val = await addClientValidator.validate(req.body);
             next();
         } catch (e) {
-            res.status(400).send(e.messages);
+            res.status(400).send(e.message);
         }
     },
     loginValidator : async (req, res, next) => {
@@ -18,15 +18,15 @@ export const clientValidatorMiddleware = {
             req.val = await loginValidator.validate(req.body);
             next();
         } catch (e){
-            res.status(400).send(e.messages);
+            res.status(400).send(e.message);
         }
     },
     updateClientValidator: async (req, res, next) => {
         try {
-            req.val = await updateClientValidator.update.validate(req.body);
+            req.val = await updateClientValidator.validate(req.body);
             next();
         } catch (e){
-            res.status(400).send(e.messages);
+            res.status(400).send(e.message);
         }
     }
     

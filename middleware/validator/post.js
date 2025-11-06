@@ -20,7 +20,7 @@ export const updatePostSchema = vine.object({
     post_status: vine.enum(['available', 'unavailable']).optional(),     
     address_id: vine.number().positive().optional(),
     client_id: vine.number().positive().optional(),
-    photo: vine.string().trim().optionalOrNullable(), 
+    photo: vine.string().trim().optional(), 
 }); 
 
 export const

@@ -1,5 +1,8 @@
 import {readFileSync} from "node:fs";
 import {pool} from "../../database/database.js";
+import {importPostalData} from "../../model/addressDB.js"
+
+
 
 const requests = readFileSync(
     './Scripts/SQL/initDB.sql',
@@ -9,6 +12,7 @@ const requests = readFileSync(
 
 try {
     await pool.query(requests, []);
+    await importPostalData(pool);
     console.log("done");
 } catch (e) {
     console.error(e);

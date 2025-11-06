@@ -21,7 +21,7 @@ export const importPostalData = async (client) => {
       if (!postalCode || !city) continue;
 
       await client.query(
-        `INSERT INTO address (city, postal_code)
+        `INSERT INTO Address (city, postal_code)
          VALUES ($1, $2)
          ON CONFLICT (city, postal_code) DO NOTHING`,
         [city.trim(), postalCode.trim()]
@@ -41,3 +41,4 @@ export const getAllCities = async (SQLClient) => {
 `SELECT id, city, postal_code FROM Address ORDER BY postal_code ASC`  );
   return rows;
 };
+

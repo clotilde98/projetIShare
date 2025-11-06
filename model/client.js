@@ -3,13 +3,13 @@ import 'dotenv/config';
 import argon2 from "argon2";
 
 
-export const createUser = async (SQLClient, { username, email, password,number,street, photo = null, is_admin = false,address_id }) => {
+export const createUser = async (SQLClient, { username, email, password, streetNumber, street, photo = null, isAdmin = false, addressID }) => {
   const pepper = process.env.PEPPER;
   const passwordWithPepper = password + pepper;
   const hash = await argon2.hash(passwordWithPepper);
   const { rows } = await SQLClient.query(
-    `INSERT INTO Client (username, email, password,number,street, photo, is_admin,address_id) VALUES ($1, $2, $3, $4, $5, $6, $7 ,$8) RETURNING *`,
-    [username, email, hash,number,street,photo, is_admin,address_id]
+    `INSERT INTO Client (username, email, password, street_number, street, photo, is_admin, address_id) VALUES ($1, $2, $3, $4, $5, $6, $7 ,$8) RETURNING *`,
+    [username, email, hash, streetNumber, street, photo, isAdmin, addressID]
   );
   return rows[0];
 };
@@ -36,21 +36,8 @@ export const getUserByEmail = async (SQLClient, email) => {
   return rows[0] || null;
 };
 
-
-
-export const getUserWithAddress = async (SQLClient, id) => {
-  const { rows } = await SQLClient.query(
-    `SELECT c.id, c.username, c.email, c.registration_date, c.street, c.number, a.city, a.postal_code
-     FROM Client c
-     JOIN Address a ON c.address_id = a.id
-     WHERE c.id = $1`,
-    [id]
-  );
-  return rows[0]; 
-};
-
   
-export const updateUser = async (SQLClient, id, { username, email, password, photo,isAdmin }) => {
+export const updateUser = async (SQLClient, id, { username, email, password, photo, isAdmin, street, streetNumber }) => {
     let query = "UPDATE Client SET ";
     const querySet = []; 
     const queryValues = []; 
@@ -78,6 +65,16 @@ export const updateUser = async (SQLClient, id, { username, email, password, pho
     if (isAdmin) { 
         queryValues.push(isAdmin);
         querySet.push(`is_admin = $${queryValues.length}`);
+    }
+
+    if (street) { 
+        queryValues.push(street);
+        querySet.push(`street = $${queryValues.length}`);
+    }
+
+    if (streetNumber) { 
+        queryValues.push(streetNumber);
+        querySet.push(`street_number = $${queryValues.length}`);
     }
 
     if (queryValues.length > 0) {
