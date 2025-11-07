@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   getPost,
+  getPosts,
   createPost,
   updatePost,
   deletePost,
@@ -17,7 +18,8 @@ const router = Router();
 
 router.post("/", checkJWT, postValidatorMiddleware.createPostValidator, createPost);           
 router.get("/byCategory", searchPostByCategory);  
-router.get("/:id", getPost);         
+router.get("/:id", getPost);     
+router.get("/", getPosts);      
 router.patch("/", checkJWT, postOwner, postValidatorMiddleware.updatePostValidator, updatePost);     
 router.delete("/:id", checkJWT, postOwner, deletePost);      
 

@@ -4,11 +4,11 @@ export const createPostSchema = vine.object({
     title: vine.string().trim(),
     description: vine.string().trim(),
     street: vine.string().trim(),
-    number_of_places: vine.number().positive(),
-    number: vine.number().positive(), 
-    address_id: vine.number().positive(),
-    client_id: vine.number().positive(), 
+    numberOfPlaces: vine.number().positive(),
+    streetNumber: vine.number().positive(), 
+    addressID: vine.number().positive(),
     photo: vine.string().trim(), 
+    categoriesProduct: vine.array(vine.number().positive())
 }); 
 
 export const updatePostSchema = vine.object({

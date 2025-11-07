@@ -1,11 +1,34 @@
-export const createPost = async (SQLClient, {description, title, numberOfPlaces, photo, addressID, clientID}) => {
-  const { rows } = await SQLClient.query(
-    `INSERT INTO Post (description, title, number_of_places, post_status, photo, address_id, client_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
-     RETURNING * `,
-    [description, title, numberOfPlaces, 'available', photo, addressID, clientID]
-  );
-  return rows[0];
+import {createPostCategory} from './postCategory.js';
+
+export const createPost = async (SQLClient, clientID, {categoriesProduct, description, title, numberOfPlaces, photo, street, streetNumber, addressID}) => {
+
+    const client = await SQLClient.connect();
+    try {
+        await client.query('BEGIN'); 
+
+        const { rows } = await client.query(
+        `INSERT INTO Post (description, title, number_of_places, post_status, photo, street, street_number, address_id, client_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        RETURNING *`,
+        [description, title, numberOfPlaces, 'available', photo, street, streetNumber, addressID, clientID]
+        );
+
+        const postID = rows[0].id;
+
+        
+        for (const categoryID of categoriesProduct) {
+            await createPostCategory(client, { IDCategory: categoryID, IDPost: postID });
+        }
+
+        await client.query('COMMIT');
+        return rows[0];
+
+    } catch (err) {
+        await client.query('ROLLBACK'); 
+        throw err;
+    } finally {
+        client.release();
+    }
 };
 
 
@@ -75,6 +98,41 @@ export const readPost = async (SQLClient, {id}) => {
 export const searchPostByCategory = async (SQLClient,  {nameCategory}) => {
     const query = "SELECT * FROM Post p INNER JOIN Post_category pc ON p.id = pc.id_ad INNER JOIN Category_product cp ON cp.id_category = pc.id_category WHERE cp.name_category=$1";
     const {rows} = await SQLClient.query(query, [nameCategory]);
-    return rows[0];
+    return rows;
 };
 
+
+
+export const getAllCategoriesFromPostID = async (SQLClient, id) => {
+    const query = "SELECT cp.id_category, cp.name_category FROM Category_product cp INNER JOIN Post_category pc ON cp.id_category = pc.id_category WHERE pc.id_ad=$1";
+    const {rows} = await SQLClient.query(query, [id]);
+    return rows[0];
+}
+
+export const getPosts = async (SQLClient, { city, page = 1, limit = 10 }) => {
+  const offset = (page - 1) * limit;
+  const conditions = [];
+  const values = [];
+
+
+  if (city) {
+    conditions.push(`LOWER(a.city) LIKE LOWER($${values.length + 1})`);
+    values.push(`%${city}%`);
+  }
+
+  const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+
+  const query = `
+    SELECT p.id, p.title, string_agg(cp.name_category, ', ') AS categories, a.city, p.number_of_places, p.post_status
+    FROM Post p
+    JOIN Address a ON p.address_id = a.id
+    INNER JOIN Post_category pc ON pc.id_ad = p.id
+    INNER JOIN Category_product cp ON cp.id_category = pc.id_category
+    ${whereClause}
+    GROUP BY p.id, a.city, p.number_of_places, p.post_status
+    LIMIT ${Number(limit)} OFFSET ${Number(offset)}
+  `;
+
+  const { rows } = await SQLClient.query(query, values);
+  return rows;
+};

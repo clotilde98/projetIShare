@@ -6,8 +6,14 @@ export const readAllTypesProduct = async (SQLClient)=>{
     return rows;
 }
 
+export const readCategoryProductFromID = async (SQLClient, id)=>{
+    let query="SELECT * FROM Category_product WHERE id_category = $1"; 
+    const {rows}=await SQLClient.query(query, [id]);
+    return rows;
+}
+
 export const createTypeProduct = async(SQLClient, {nameCategory}) => {
- const {rows}=await SQLClient.query("INSERT INTO Category_product(name_category) VALUES ($1) RETURNING id_category",
+ const {rows}=await SQLClient.query("INSERT INTO Category_product(name_category) VALUES ($1) RETURNING *",
      [nameCategory]
  );
  return rows[0];

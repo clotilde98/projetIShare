@@ -19,15 +19,21 @@ export const getPost = async (req, res) => {
     }
 }
 
+export const getPosts = async (req, res) => {
+    try {
+        const { city, page, limit } = req.query;
+        const posts = await postModel.getPosts(pool, {city, page, limit})
+        return res.status(200).json(posts);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+}
+
 
 export const createPost = async (req, res) => {
     try {
-        const { title, numberOfPlaces, addressID, clientID } = req.body;
-        if (!title || !numberOfPlaces || !addressID || !clientID) {
-            return res.status(400).send("Missing required fields");
-        }
- 
-        const post = await postModel.createPost(pool, req.body);
+        const clientID = req.user.id; 
+        const post = await postModel.createPost(pool, clientID, req.body);
         res.status(201).send(post);
     } catch (err){
         res.status(500).send(err.message);
