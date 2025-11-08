@@ -11,7 +11,7 @@ const router = Router();
 
 router.use('/users', userRouter);
 router.use('/posts', checkJWT, postRouter);
-router.use('/reservation', checkJWT, reservationRouter);
+router.use('/reservations', checkJWT, reservationRouter);
 router.post('/login',clientValidatorMiddleware.loginValidator, login)
 router.get('/getAllCities', getAllCities);
 router.use('/productType', productTypeRouter);

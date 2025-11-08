@@ -26,6 +26,20 @@ export const getReservation = async (req, res) => {
     }
 }
 
+export const getReservationsByUsername = async (req, res) => {
+    try {
+        const {username} = req.query;
+        const reservations = await reservationModel.getReservationsByUsername(pool, {username});
+        if (reservations){
+            res.send(reservations);
+        } else {
+            res.status(404).send("Reservations not found for user " + username);
+        }
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+}
+
 export const getReservationsByClientID = async (req, res) => {
     try {
         const id = parseInt(req.params.id);
@@ -63,20 +77,30 @@ export const getReservationsByPostID = async (req, res) => {
 
 export const createReservation = async (req, res) => {
     try {
-        const { postID, clientID } = req.body;
+        const clientID  = req.user.id;
+        const { postID } = req.body;
         
         const post = await readPost(pool, {id : postID});
         
         if (!post){
-            res.status(404).send("Post doesn't exist");
+            return res.status(404).send("Post doesn't exist");
         } else {
             const countCurrentReservationsForPost = await reservationModel.readReservationsByPostID(pool, {id:postID});
             if (post.number_of_places > countCurrentReservationsForPost.length){
                 const client = await getUserById(pool, clientID);
                 if (!client){
-                    res.status(404).send("User not found");
+                    return res.status(404).send("User not found");
                 } else {
-                    const newReservation = await reservationModel.createReservation(pool, req.body);
+                    const userReservation = await reservationModel.readReservationByClientIDAndByPostID(pool, {clientID:client.id, postID})
+                    if (userReservation){
+                        return res.status(401).send("Reservation already exists");
+                    }
+
+                    if (post.client_id == clientID){
+                        return res.status(401).send("You can't make a reservation for a post that you posted");
+                    }
+
+                    const newReservation = await reservationModel.createReservation(pool, clientID, req.body);
                     res.status(201).send(newReservation.id);
                 }
             } else {

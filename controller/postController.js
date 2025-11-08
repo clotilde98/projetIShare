@@ -44,6 +44,7 @@ export const createPost = async (req, res) => {
         const post = await postModel.createPost(client, clientID, req.body);
         const postID = post.id;
 
+
         for (const categoryID of categoriesProduct) {
             await createPostCategory(client, { IDCategory: categoryID, IDPost: postID });
         }

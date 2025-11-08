@@ -15,7 +15,7 @@ CREATE TABLE Address (
 
 CREATE TABLE Client (
     id SERIAL PRIMARY KEY,
-    username VARCHAR(50) NOT NULL,
+    username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     street VARCHAR(100) NOT NULL,
@@ -59,7 +59,7 @@ CREATE TABLE Reservation (
 CREATE TABLE Category_product
 (
     id_category SERIAL PRIMARY KEY,
-    name_category VARCHAR(20)
+    name_category VARCHAR(20) UNIQUE
 );
 
 CREATE TABLE Post_category (
@@ -78,8 +78,6 @@ CREATE TABLE Comment (
     id_costumer INT NOT NULL,
     CONSTRAINT fk_post FOREIGN KEY (id_post) REFERENCES Post(id),
     CONSTRAINT fk_costumer FOREIGN KEY (id_costumer) REFERENCES Client(id)
-
-
 );
 
 
