@@ -20,7 +20,7 @@ export const importPostalData = async (client) => {
 
       if (!postalCode || !city) continue;
 
-      await client.query(
+      await address.query(
         `INSERT INTO Address (city, postal_code)
          VALUES ($1, $2)
          ON CONFLICT (city, postal_code) DO NOTHING`,

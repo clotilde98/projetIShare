@@ -20,3 +20,5 @@ router.patch("/", checkJWT, isSameUser, clientValidatorMiddleware.updateClientVa
 router.delete("/:id", checkJWT, isSameUser, deleteUser);       
 
 export default router;
+
+

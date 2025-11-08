@@ -13,20 +13,7 @@ const photo = req.file ? `${req.protocol}://${req.get('host')}/images/${req.file
 };
 
 
-export const getUserWithAddress = async (req, res) => {
-  try {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) return res.status(400).json({ message: 'ID invalide' });
 
-    const user = await userModel.getUserWithAddress(pool, id);
-    if (!user) return res.status(404).json({ message: 'Client non trouvé' });
-
-    res.json(user);
-  } catch (err) {
-    console.error('Erreur getUserWithAddress:', err.message);
-    res.status(500).json({ message: 'Erreur serveur' });
-  }
-}
 
 
 export const updateUser= async(req, res) => {

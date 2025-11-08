@@ -1,8 +1,8 @@
 import Router from 'express';
-import {readAllTypesProduct, createTypeProduct, updateTypeProduct, deleteTypeProduct} from '../controller/productTypeController.js';
+import {getCategories, createTypeProduct, updateTypeProduct, deleteTypeProduct} from '../controller/productTypeController.js';
 const router = Router();
 
-router.get('/', readAllTypesProduct);
+router.get('/', getCategories);
 
 router.post('/', createTypeProduct);
 router.patch('/', updateTypeProduct);

@@ -1,10 +1,5 @@
 import {Query} from "pg";
 
-export const readAllTypesProduct = async (SQLClient)=>{
-    let query="SELECT * FROM Category_product"; 
-    const {rows}=await SQLClient.query(query);
-    return rows;
-}
 
 export const readCategoryProductFromID = async (SQLClient, id)=>{
     let query="SELECT * FROM Category_product WHERE id_category = $1"; 
@@ -41,7 +36,29 @@ export const deleteTypeProduct=async(SQLClient, {idCategory})=> {
 
 
 
+export const getCategories = async (SQLClient, { nameCategory, page = 1, limit = 10 }) => {
+  const offset = (page - 1) * limit;
+  const conditions = [];
+  const values = [];
 
+  if (nameCategory) {
+    values.push(`%${nameCategory}%`);
+    conditions.push(`LOWER(name_category) LIKE LOWER($${values.length})`);
+  }
 
+  const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
+  const query = `
+    SELECT 
+      id_category, 
+      name_category 
+    FROM Category_product
+    ${whereClause}
+    ORDER BY name_category ASC
+    LIMIT ${Number(limit)} OFFSET ${Number(offset)}
+  `;
+
+  const { rows } = await SQLClient.query(query, values);
+  return rows;
+};
 

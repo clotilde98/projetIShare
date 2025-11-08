@@ -1,8 +1,4 @@
-export const readAllComments = async (SQLClient) => {
-    let query="SELECT * FROM Comment";
-    const {rows}=await SQLClient.query(query);
-    return rows;
-}
+
 
 export const deleteComment = async (SQLClient, {id})=>{
     let query="DELETE FROM Comment WHERE id=$1";
@@ -27,8 +23,32 @@ export const updateComment = async (SQLClient, {id, content}) => {
     return await SQLClient.query(query, [id, content]);
 }
 
-export const searchCommentByDate = async (SQLClient, {date}) => {
-    let query="SELECT * FROM Comment WHERE date=$1"; 
-    const {rows} = await SQLClient.query(query, [date]);
-    return rows;
-}
+export const getComments = async (SQLClient, { commentDate, page = 1, limit = 10 }) => {
+  const offset = (page - 1) * limit;
+  const conditions = [];
+  const values = [];
+
+  if (commentDate) {
+    values.push(`%${commentDate}%`);
+    conditions.push(`TO_CHAR(c.date, 'YYYY-MM-DD') LIKE $${values.length}`);
+  }
+
+  const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+
+  const query = `
+    SELECT
+      c.content,
+      c.date,
+      p.title AS post_title,
+      cl.username AS username
+    FROM Comment c
+    JOIN Post p ON c.id_post = p.id
+    JOIN Client cl ON c.id_costumer = cl.id
+    ${whereClause}
+    ORDER BY c.date DESC, c.id DESC
+    LIMIT ${Number(limit)} OFFSET ${Number(offset)}
+  `;
+
+  const { rows } = await SQLClient.query(query, values);
+  return rows;
+};

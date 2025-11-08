@@ -1,19 +1,7 @@
 import {pool} from "../database/database.js";
 import * as commentModel from "../model/comment.js";
 
-export const readAllComment = async (req, res) => {
-   try{
-       const comments = await commentModel.readAllComments(pool);
-       if(comments && comments.length > 0){
-       res.status(200).send(comments);
-       }else{
-        res.status(404).send("No comment found"); 
-       }
-   }catch (err){
-        console.log(err); 
-       res.sendStatus(500);
-   }
-}
+
 
 export const createComment = async (req, res) => {
     try{
@@ -52,16 +40,22 @@ export const deleteComment = async(req, res) =>{
     }
 }
 
-export const searchCommentByDate=async(req, res) => {
-    try{
-        const comments = await commentModel.searchCommentByDate(pool, req.body);
-        if(comments && comments.length > 0){
-            res.status(200).send(comments);
-       }else{
-            res.status(404).send("No comment found for this date"); 
-       }
-    }catch (e) {
-        res.sendStatus(500);
-    }
-}
+export const getComments = async (req, res) => {
+  try {
+   
+    const { commentDate, page, limit } = req.query;
+
+    const comments = await commentModel.getComments(pool, {
+      commentDate, 
+      page: parseInt(page) || 1, 
+      limit: parseInt(limit) || 10 
+    });
+
+    res.status(200).json(comments);
+    
+  } catch (err) {
+    console.error('Erreur récupération des commentaires :', err.message);
+    res.status(500).json({ message: 'Erreur serveur lors de la récupération des commentaires.' });
+  }
+};
 

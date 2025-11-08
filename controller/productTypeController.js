@@ -1,22 +1,23 @@
 import {pool} from "../database/database.js";
 import * as typeProductModel from "../model/productType.js";
 
-export const readAllTypesProduct = async (req, res) => {
-    try {
-        const typesProduct = await typeProductModel.readAllTypesProduct(pool);
-        if(typesProduct && typesProduct.length > 0){
-            res.status(200).send(typesProduct);
-        }else{
-            res.status(404).send("No product type found");
-        }
-        
+export const getCategories = async (req, res) => {
+  try {
+   
+    const { nameCategory, page, limit } = req.query;
 
-    }catch(err){
-        console.log(err);
-        res.sendStatus(500);
-    }
+    const categories = await typeProductModel.getCategories(pool, {
+      nameCategory, 
+      page: parseInt(page) || 1, 
+      limit: parseInt(limit) || 10 
+    });
 
-}
+    res.status(200).json(categories);
+  } catch (err) {
+    console.error('Erreur récupération des catégories :', err.message);
+    res.status(500).json({ message: 'Erreur serveur lors de la récupération des catégories.' });
+  }
+};
 
 export const createTypeProduct = async (req, res) => {
     try {
