@@ -82,8 +82,6 @@ CREATE TABLE Comment (
 
 );
 
-INSERT INTO Category_product (name_category) VALUES ('Food');
-INSERT INTO Category_product (name_category) VALUES ('Beverage');
-INSERT INTO Category_product (name_category) VALUES ('Frozen food');
+
 
 

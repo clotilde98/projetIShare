@@ -1,5 +1,5 @@
 import { pool } from "../database/database.js";
-
+import {createPostCategory} from '../model/postCategory.js'
 import * as postModel from '../model/postDB.js';
 
 export const getPost = async (req, res) => {
@@ -31,14 +31,35 @@ export const getPosts = async (req, res) => {
 
 
 export const createPost = async (req, res) => {
+    let client;
     try {
+        const {categoriesProduct} = req.body;
+        if (!categoriesProduct || categoriesProduct.length == 0){
+            return res.status(400).send("Missing product category to create a post");
+        }
+        client = await pool.connect();
+
+        await client.query('BEGIN'); 
         const clientID = req.user.id; 
-        const post = await postModel.createPost(pool, clientID, req.body);
-        res.status(201).send(post);
+        const post = await postModel.createPost(client, clientID, req.body);
+        const postID = post.id;
+
+        for (const categoryID of categoriesProduct) {
+            await createPostCategory(client, { IDCategory: categoryID, IDPost: postID });
+        }
+
+        await client.query('COMMIT');
+
+
+        res.status(201).send("Post created");
     } catch (err){
+        await client.query('ROLLBACK'); 
         res.status(500).send(err.message);
+    } finally {
+        if (client) client.release();
     }
 }
+
 
 export const updatePost = async (req, res) => {
     try {

@@ -1,33 +1,17 @@
 import {createPostCategory} from './postCategory.js';
 
-export const createPost = async (SQLClient, clientID, {categoriesProduct, description, title, numberOfPlaces, photo, street, streetNumber, addressID}) => {
+export const createPost = async (SQLClient, clientID, {description, title, numberOfPlaces, photo, street, streetNumber, addressID}) => {
 
-    const client = await SQLClient.connect();
     try {
-        await client.query('BEGIN'); 
-
-        const { rows } = await client.query(
+        const {rows} = await SQLClient.query(
         `INSERT INTO Post (description, title, number_of_places, post_status, photo, street, street_number, address_id, client_id)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         RETURNING *`,
         [description, title, numberOfPlaces, 'available', photo, street, streetNumber, addressID, clientID]
         );
-
-        const postID = rows[0].id;
-
-        
-        for (const categoryID of categoriesProduct) {
-            await createPostCategory(client, { IDCategory: categoryID, IDPost: postID });
-        }
-
-        await client.query('COMMIT');
         return rows[0];
-
     } catch (err) {
-        await client.query('ROLLBACK'); 
         throw err;
-    } finally {
-        client.release();
     }
 };
 
