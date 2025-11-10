@@ -18,7 +18,7 @@ export const createUser = async (SQLClient, { username, email, password, streetN
 
 export const getUserById = async (SQLClient, id) => {
   const { rows } = await SQLClient.query(
-    `SELECT *
+    `SELECT id,  username,  email,  password,  is_admin AS isAdmin
      FROM Client
      WHERE id = $1`,
     [id]
@@ -28,14 +28,23 @@ export const getUserById = async (SQLClient, id) => {
 
 export const getUserByEmail = async (SQLClient, email) => {
   const { rows } = await SQLClient.query(
-    `SELECT *
+    `SELECT id, username, email, password, is_admin AS isAdmin
      FROM Client
      WHERE email = $1`,
     [email]
   );
-  return rows[0] || null;
+  return rows[0] ;
 };
 
+export const getProfileById = async (SQLClient, id) => {
+    const { rows } = await SQLClient.query(
+        `SELECT id,  username,  email,  street,  street_number AS streetNumber, photo
+        FROM  Client
+        WHERE id = $1`,
+        [id]
+    );
+    return rows[0];
+};
   
 export const updateUser = async (SQLClient, id, { username, email, password, photo, isAdmin, street, streetNumber }) => {
     let query = "UPDATE Client SET ";

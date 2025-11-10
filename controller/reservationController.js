@@ -46,6 +46,7 @@ export const getReservationsByClientID = async (req, res) => {
         if (!id || isNaN(parseInt(id))){
             return res.status(400).send("Client reservation ID is invalid")
         }
+        
         const reservation = await reservationModel.readReservationsByClientID(pool, {id});
         if (reservation){
             res.send(reservation);

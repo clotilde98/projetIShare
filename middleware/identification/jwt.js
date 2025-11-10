@@ -18,6 +18,7 @@ export const checkJWT = async (req, res, next) => {
         req.user = {
             id: decoded.id,
             email: decoded.email,
+            is_admin: decoded.is_admin,
         };
         next();
     } catch (err){
