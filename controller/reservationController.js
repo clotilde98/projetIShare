@@ -100,6 +100,9 @@ export const createReservation = async (req, res) => {
         if (!post){
             return res.status(404).send("Post doesn't exist");
         } else {
+            if (post.post_status === 'unavailable'){
+                return res.status(404).send("Post is unavailable");
+            }
             const countCurrentReservationsForPost = await reservationModel.readReservationsByPostID(pool, {id:postID});
             if (post.number_of_places > countCurrentReservationsForPost.length){
                 const client = await getUserById(pool, clientID);
