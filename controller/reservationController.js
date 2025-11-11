@@ -9,12 +9,10 @@ import * as reservationModel from '../model/reservationDB.js';
 
 export const getReservation = async (req, res) => {
     try {
-        
         const id = parseInt(req.params.id);
         if (!id || isNaN(parseInt(id))){
             return res.status(400).send("Reservation ID is invalid")
         }
-
         const reservation = await reservationModel.readReservation(pool, {id});
         if (reservation){
             res.send(reservation);
@@ -40,6 +38,21 @@ export const getReservationsByUsername = async (req, res) => {
     }
 }
 
+export const getMyReservations = async (req, res) => {
+    try {
+        const id = req.user.id;
+        const reservations = await reservationModel.readReservationsByClientID(pool, {id});
+        if (reservations.length > 0){
+            res.send(reservations);
+        } else {
+            res.status(404).send("Client reservation not found");
+        }
+
+    } catch (err){
+        res.status(500).send(err.message);
+    }
+}
+
 export const getReservationsByClientID = async (req, res) => {
     try {
         const id = parseInt(req.params.id);
@@ -47,9 +60,10 @@ export const getReservationsByClientID = async (req, res) => {
             return res.status(400).send("Client reservation ID is invalid")
         }
         
-        const reservation = await reservationModel.readReservationsByClientID(pool, {id});
-        if (reservation){
-            res.send(reservation);
+        const reservations = await reservationModel.readReservationsByClientID(pool, {id});
+        console.log(reservations);
+        if (reservations.length > 0){
+            res.send(reservations);
         } else {
             res.status(404).send("Client reservation not found");
         }

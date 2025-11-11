@@ -5,15 +5,14 @@ export const mustBeAdmin = (req, res, next) => {
             return res.status(401).send("Authentication required.");
         }
 
-        const isAdmin = req.user.is_admin; 
+        const isAdmin = req.user.isAdmin; 
         if (isAdmin === true) {
-            next();
+            return next();
         } else {
-            return res.status(403).send("Forbidden: Administrator privileges required.");
+            next(new Error("Must be admin"));
         }
 
     } catch (err) {
-        console.error("Error in mustBeAdmin middleware:", err);
-        res.status(500).send("Internal Server Error.");
+        next("error");
     }
 };
