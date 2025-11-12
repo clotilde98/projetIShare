@@ -21,8 +21,8 @@ export const getPost = async (req, res) => {
 
 export const getPosts = async (req, res) => {
     try {
-        const { city, page, limit } = req.query;
-        const posts = await postModel.getPosts(pool, {city, page, limit})
+        const { city, postStatus, page, limit } = req.query;
+        const posts = await postModel.getPosts(pool, {city, postStatus, page, limit})
         return res.status(200).json(posts);
     } catch (err) {
         res.status(500).send(err.message);
