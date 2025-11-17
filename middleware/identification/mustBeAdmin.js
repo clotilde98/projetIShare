@@ -1,10 +1,19 @@
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     mustBeAdmin:
+ *       description: User verification requires administrator privileges
+ *       content:
+ *         text/plain:
+ *           schema:
+ *             type: string
+ *             example: Admin privileges required
+ */
 
 export const mustBeAdmin = (req, res, next) => {
     try {
-        if (!req.user) {
-            return res.status(401).send("Authentication required.");
-        }
-
+        
         const isAdmin = req.user.is_admin; 
         if (isAdmin === true) {
             next();
@@ -13,7 +22,7 @@ export const mustBeAdmin = (req, res, next) => {
         }
 
     } catch (err) {
-        console.error("Error in mustBeAdmin middleware:", err);
+
         res.status(500).send("Internal Server Error.");
     }
 };

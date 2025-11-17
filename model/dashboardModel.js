@@ -30,3 +30,9 @@ export const getTotalUsers = async (SQLClient) => {
     const { rows } = await SQLClient.query(query);
     return parseInt(rows[0].total);
 };
+
+
+
+
+
+

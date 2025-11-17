@@ -10,9 +10,8 @@ const options = {
         },
     },
     apis: [
-        "./controler/**/*.js",
+        "./controller/**/*.js",
         "./middleware/**/*.js",
-        "./model/**/*.js",
         "./routes/**/*.js",
     ],
 };

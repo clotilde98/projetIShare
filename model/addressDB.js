@@ -3,7 +3,7 @@ import axios from 'axios';
 const BASE_URL = 'https://www.odwb.be/api/explore/v2.1/catalog/datasets/code-postaux-belge/records';
 const LIMIT_PER_PAGE = 100;
 
-export const importPostalData = async (client) => {
+export const importPostalData = async (SQLClient) => {
   let totalCount = 0;
   let offset = 0;
 
@@ -20,7 +20,7 @@ export const importPostalData = async (client) => {
 
       if (!postalCode || !city) continue;
 
-      await address.query(
+      await SQLClient.query(
         `INSERT INTO Address (city, postal_code)
          VALUES ($1, $2)
          ON CONFLICT (city, postal_code) DO NOTHING`,
