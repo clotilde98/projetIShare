@@ -28,11 +28,11 @@ export const login = async (req, res) => {
             return res.status(401).send("User/Password incorrect");
         }
 
-
         const token = jwt.sign(
             { 
                 id: user.id, 
-                email: user.email 
+                email: user.email,
+                isAdmin: user.isadmin,
             },
             process.env.JWT_SECRET,
             { expiresIn: "24h" }

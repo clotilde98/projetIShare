@@ -15,7 +15,7 @@ export const readReservation = async (SQLClient, {id}) => {
 };
 
 export const readReservationsByClientID = async (SQLClient, {id}) => {
-    const {rows} = await SQLClient.query("SELECT * FROM Reservation WHERE client_id = $1", [id]);
+    const {rows} = await SQLClient.query("SELECT * FROM reservation WHERE client_id = $1", [id]);
     return rows;
 };
 

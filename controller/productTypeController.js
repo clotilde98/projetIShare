@@ -21,6 +21,12 @@ export const getCategories = async (req, res) => {
 
 export const createTypeProduct = async (req, res) => {
     try {
+        
+        const productType = await typeProductModel.getCategories(pool, {nameCategory:req.body.nameCategory});
+        if (productType){
+            return res.status(409).send("Type already exists");
+        }
+
         const productCreated=await typeProductModel.createTypeProduct(pool, req.body);
         if(productCreated){
             res.status(201).send(productCreated);
@@ -28,8 +34,7 @@ export const createTypeProduct = async (req, res) => {
             res.status(404).send("No product type found"); 
         }
     }catch(err){
-        console.log(err);
-        res.sendStatus(500);
+        res.status(500).send(err.message);
     }
 }
 

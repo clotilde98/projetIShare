@@ -10,6 +10,7 @@ import {
 
 import {checkJWT} from '../middleware/identification/jwt.js'
 import {postValidatorMiddleware} from '../middleware/validation.js';
+import { mustBeAdmin } from '../middleware/identification/mustBeAdmin.js'; 
 
 import {postOwner} from '../middleware/identification/postOwner.js';
 

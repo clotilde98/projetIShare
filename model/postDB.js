@@ -93,7 +93,8 @@ export const getAllCategoriesFromPostID = async (SQLClient, id) => {
     return rows[0];
 }
 
-export const getPosts = async (SQLClient, { city, page = 1, limit = 10 }) => {
+
+export const getPosts = async (SQLClient, { city, postStatus, page = 1, limit = 10 }) => {
   const offset = (page - 1) * limit;
   const conditions = [];
   const values = [];
@@ -102,6 +103,13 @@ export const getPosts = async (SQLClient, { city, page = 1, limit = 10 }) => {
   if (city) {
     conditions.push(`LOWER(a.city) LIKE LOWER($${values.length + 1})`);
     values.push(`%${city}%`);
+  }
+
+  if (postStatus){
+    if (postStatus === 'available' || postStatus === 'unavailable'){
+        conditions.push(`p.post_status = $${values.length + 1}`);
+        values.push(postStatus);
+    }
   }
 
   const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';

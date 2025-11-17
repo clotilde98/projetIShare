@@ -6,9 +6,8 @@ export const createReservationSchema = vine.object({
 }); 
 
 export const updateReservationSchema = vine.object({
-    reservation_status: vine.enum(['confirmed', 'cancelled']).optional(),
-    postID: vine.number().positive().optional(),
-    clientID: vine.number().positive().optional(),
+    reservationStatus: vine.enum(['confirmed', 'cancelled']).optional(),
+    id: vine.number().positive().optional(),
 });
 
 export const
